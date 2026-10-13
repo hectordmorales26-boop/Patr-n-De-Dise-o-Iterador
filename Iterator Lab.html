@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iterator Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7FB; --surface:#FFFFFF; --surface-2:#EEF1F8;
+  --ink:#16224E; --text:#222838; --muted:#5B6478;
+  --accent:#1FA37A; --accent-ink:#0B5C44; --gold:#C9962E;
+  --line:#E2E6F0; --danger:#C94C4C;
+  --radius:14px;
+  --ff-head:'Sora',system-ui,sans-serif; --ff-body:'Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1326; --surface:#171D38; --surface-2:#1E2746;
+    --ink:#EAF0FF; --text:#DCE2F5; --muted:#99A2C0;
+    --line:#2A3356; --accent:#36C79A; --accent-ink:#8FEFD2; --gold:#E0B559;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1326; --surface:#171D38; --surface-2:#1E2746;
+  --ink:#EAF0FF; --text:#DCE2F5; --muted:#99A2C0;
+  --line:#2A3356; --accent:#36C79A; --accent-ink:#8FEFD2; --gold:#E0B559;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background:var(--bg); color:var(--text); font-family:var(--ff-body);
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;
+}
+h1,h2,h3{font-family:var(--ff-head); color:var(--ink); margin:0 0 .4em; line-height:1.15}
+p{line-height:1.55; color:var(--text)}
+.muted{color:var(--muted)}
+a{color:inherit}
+nav.top{
+  position:sticky; top:0; z-index:10; top:env(safe-area-inset-top,0px);
+  display:flex; align-items:center; gap:4px; flex-wrap:wrap;
+  background:color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:14px 20px;
+}
+nav.top .brand{font-family:var(--ff-head); font-weight:800; font-size:1.05rem; color:var(--ink); margin-right:auto; display:flex; align-items:center; gap:8px}
+nav.top .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+nav.top button{
+  font-family:var(--ff-body); font-weight:600; font-size:.92rem; color:var(--muted);
+  background:none; border:none; padding:8px 12px; border-radius:999px; cursor:pointer;
+}
+nav.top button.active{background:var(--surface-2); color:var(--ink)}
+main{max-width:860px; margin:0 auto; padding:36px 20px 80px}
+section{display:none}
+section.active{display:block; animation:fade .35s ease}
+@keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+
+/* ---- Inicio ---- */
+.hero{padding:30px 0 10px}
+.eyebrow{font-size:.8rem; color:var(--accent-ink); font-weight:600; letter-spacing:.02em}
+.hero h1{font-size:2.3rem; margin-top:6px}
+.hero p.lead{font-size:1.05rem; color:var(--muted); max-width:52ch}
+.track{display:flex; gap:10px; align-items:center; margin:30px 0 6px; overflow-x:auto; padding:4px}
+.bead{min-width:52px; height:52px; border-radius:50%; background:var(--surface-2); border:2px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--muted); flex-shrink:0;
+  transition:all .5s cubic-bezier(.2,.8,.2,1)}
+.bead.cur{background:var(--accent); border-color:var(--accent); color:#fff; transform:scale(1.14)}
+.arrow{color:var(--muted); font-size:1.2rem}
+.cards3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:28px}
+.cards3 .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px; cursor:pointer}
+.cards3 .card:hover{border-color:var(--accent)}
+.cards3 .card b{display:block; font-family:var(--ff-head); color:var(--ink); margin-bottom:4px}
+@media(max-width:640px){.cards3{grid-template-columns:1fr} .hero h1{font-size:1.7rem}}
+
+/* ---- Teoria ---- */
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px}
+.card h3{font-size:1.02rem}
+.card ul{margin:0; padding-left:1.1em; color:var(--text)}
+.card li{margin-bottom:6px}
+.roles{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0 26px}
+.role{background:var(--surface-2); border-radius:10px; padding:12px; text-align:center}
+.role .tag{font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
+.role b{display:block; font-family:var(--ff-head); color:var(--ink); font-size:.92rem; margin-top:2px}
+.pro-con{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px}
+.pro-con .card.pro{border-left:4px solid var(--accent)}
+.pro-con .card.con{border-left:4px solid var(--gold)}
+@media(max-width:640px){.grid2,.roles,.pro-con{grid-template-columns:1fr 1fr}}
+@media(max-width:460px){.roles{grid-template-columns:1fr 1fr}}
+
+/* ---- Simulador ---- */
+.simbar{display:flex; gap:8px; flex-wrap:wrap; margin:18px 0}
+.simbar button{
+  font-family:var(--ff-body); font-weight:600; font-size:.88rem; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:9px 14px; cursor:pointer;
+}
+.simbar button.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
+.simbar button:disabled{opacity:.4; cursor:not-allowed}
+.profiles{display:flex; gap:12px; flex-wrap:wrap; margin:22px 0}
+.profile{background:var(--surface); border:2px solid var(--line); border-radius:12px; padding:14px 16px; min-width:120px; text-align:center; transition:all .4s}
+.profile .av{width:34px;height:34px;border-radius:50%;background:var(--surface-2);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted)}
+.profile.cur{border-color:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent)}
+.profile.cur .av{background:var(--accent); color:#fff}
+.profile b{display:block; font-size:.88rem; color:var(--ink)}
+.profile span{font-size:.72rem; color:var(--muted)}
+.state{display:flex; gap:18px; flex-wrap:wrap; font-size:.85rem; color:var(--muted); margin:10px 0 18px}
+.state b{color:var(--ink)}
+.log{background:var(--ink); color:#D7E4FF; border-radius:12px; padding:14px 16px; font-family:ui-monospace,Consolas,monospace; font-size:.82rem; max-height:180px; overflow-y:auto}
+.log div{padding:2px 0; border-bottom:1px solid rgba(255,255,255,.08)}
+.log .ok{color:#8FEFD2}
+
+/* ---- Actividad ---- */
+.q{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:14px}
+.q p.prompt{font-weight:600; color:var(--ink); margin-bottom:10px}
+.opt{display:block; width:100%; text-align:left; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin-bottom:8px; cursor:pointer; font-family:var(--ff-body); font-size:.92rem; color:var(--text)}
+.opt:hover{border-color:var(--accent)}
+.opt.correct{background:color-mix(in srgb, var(--accent) 18%, var(--surface)); border-color:var(--accent)}
+.opt.wrong{background:color-mix(in srgb, var(--danger) 16%, var(--surface)); border-color:var(--danger)}
+.opt[disabled]{cursor:default}
+.fb{font-size:.86rem; margin-top:6px; padding-top:8px; border-top:1px dashed var(--line); display:none}
+.fb.show{display:block}
+.score{font-family:var(--ff-head); font-weight:700; color:var(--ink); margin:18px 0 6px}
+.code{background:var(--ink); color:#D7E4FF; border-radius:12px; padding:16px; font-family:ui-monospace,Consolas,monospace; font-size:.8rem; overflow-x:auto; white-space:pre; margin:14px 0}
+footer{text-align:center; color:var(--muted); font-size:.8rem; padding:30px 0 10px}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="brand"><span class="dot"></span>Iterator Lab</div>
+  <button data-go="inicio">Inicio</button>
+  <button data-go="teoria">Teoría</button>
+  <button data-go="simulador">Simulador</button>
+  <button data-go="actividad">Actividad</button>
+</nav>
+
+<main>
+
+<section id="inicio">
+  <div class="hero">
+    <div class="eyebrow">Arquitectura de Software · Patrones de diseño</div>
+    <h1>Recorrer sin exponer.</h1>
+    <p class="lead">Un objeto de aprendizaje interactivo sobre el patrón <b>Iterator</b>: teoría, un simulador de recorrido y una actividad con retroalimentación inmediata.</p>
+    <div class="track" id="heroTrack"></div>
+  </div>
+  <div class="cards3">
+    <div class="card" data-go="teoria"><b>Teoría</b><span class="muted">Propósito, estructura, participantes y consecuencias del patrón.</span></div>
+    <div class="card" data-go="simulador"><b>Simulador</b><span class="muted">Controla un iterador paso a paso sobre una lista de perfiles.</span></div>
+    <div class="card" data-go="actividad"><b>Actividad</b><span class="muted">Quiz y ejercicio de código con retroalimentación al instante.</span></div>
+  </div>
+</section>
+
+<section id="teoria">
+  <h2>Teoría del patrón</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Propósito</h3>
+      <p class="muted">Proporcionar una forma de acceder secuencialmente a los elementos de un objeto agregado sin exponer su representación interna.</p>
+    </div>
+    <div class="card">
+      <h3>Motivación</h3>
+      <ul><li>Recorrer sin conocer la estructura interna</li><li>Soportar distintos tipos de recorrido</li><li>Permitir varios recorridos simultáneos</li></ul>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card"><h3>Problema</h3><p class="muted">Una colección debe exponer sus elementos sin acoplar al cliente a su estructura interna (arreglo, lista, árbol).</p></div>
+    <div class="card"><h3>Solución</h3><p class="muted">Extraer la lógica de recorrido a un objeto Iterador independiente, con una interfaz común: primero, siguiente, ¿terminó?, actual.</p></div>
+  </div>
+
+  <h3 style="margin-top:28px">Participantes</h3>
+  <div class="roles">
+    <div class="role"><span class="tag">Interfaz</span><b>Iterator</b></div>
+    <div class="role"><span class="tag">Implementa</span><b>ConcreteIterator</b></div>
+    <div class="role"><span class="tag">Interfaz</span><b>IterableCollection</b></div>
+    <div class="role"><span class="tag">Implementa</span><b>ConcreteCollection</b></div>
+  </div>
+
+  <h3>Consecuencias</h3>
+  <div class="pro-con">
+    <div class="card pro"><b>Ventajas</b><ul><li>Soporta variaciones de recorrido</li><li>Simplifica la interfaz del agregado</li><li>Permite recorridos simultáneos</li></ul></div>
+    <div class="card con"><b>Desventajas</b><ul><li>Acopla iterador y colección</li><li>Una clase extra por tipo de recorrido</li><li>Gestión de memoria sin GC</li></ul></div>
+  </div>
+</section>
+
+<section id="simulador">
+  <h2>Simulador: envío de mensajes a perfiles</h2>
+  <p class="muted">Un <b>FacebookIterator</b> recorre la lista de amigos de un perfil. Usa los controles para invocar los métodos del iterador y observa cómo cambia el puntero de recorrido.</p>
+
+  <div class="profiles" id="profiles"></div>
+  <div class="state">Posición: <b id="stPos">—</b> &nbsp;·&nbsp; hasMore(): <b id="stMore">—</b> &nbsp;·&nbsp; actual: <b id="stCur">—</b></div>
+  <div class="simbar">
+    <button id="btnFirst">First()</button>
+    <button id="btnNext" class="primary">Next()</button>
+    <button id="btnReset">Reiniciar</button>
+  </div>
+  <div class="log" id="log"></div>
+</section>
+
+<section id="actividad">
+  <h2>Actividad de clase</h2>
+  <p class="muted">Resuelve el quiz y completa el método del iterador. Cada respuesta da retroalimentación inmediata.</p>
+
+  <div id="quiz"></div>
+  <div class="score" id="score"></div>
+
+  <h3 style="margin-top:30px">Completa el iterador</h3>
+  <p class="muted">¿Cuál fragmento implementa correctamente <code>get_next()</code> en <code>FacebookIterator</code>, avanzando la posición y devolviendo el perfil actual?</p>
+  <div class="code">class FacebookIterator(ProfileIterator):
+    def __init__(self, cache):
+        self._cache = cache
+        self._pos = 0
+
+    def has_more(self) -> bool:
+        return self._pos &lt; len(self._cache)
+
+    def get_next(self) -> Profile:
+        # ¿qué va aquí?
+        ...</div>
+  <div id="codeq"></div>
+</section>
+
+</main>
+
+<footer>Universidad de Cartagena · Programa de Ingeniería de Sistemas · Referencia: Gamma, Helm, Johnson &amp; Vlissides (1994), <i>Design Patterns</i>.</footer>
+
+<script>
+// ---------- Router ----------
+const sections = document.querySelectorAll('main section');
+const navBtns = document.querySelectorAll('nav.top button');
+function go(id){
+  sections.forEach(s=>s.classList.toggle('active', s.id===id));
+  navBtns.forEach(b=>b.classList.toggle('active', b.dataset.go===id));
+  location.hash = '#/'+id;
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.go)));
+window.addEventListener('hashchange', ()=>{
+  const id = (location.hash.replace('#/','') || 'inicio');
+  if(document.getElementById(id)) go(id);
+});
+go((location.hash.replace('#/','') || 'inicio'));
+
+// ---------- Hero track (decorative) ----------
+(function(){
+  const track = document.getElementById('heroTrack');
+  const n = 6; let cur = 0;
+  for(let i=0;i<n;i++){
+    const b = document.createElement('div'); b.className='bead'; b.textContent = i+1;
+    track.appendChild(b);
+    if(i<n-1){ const a=document.createElement('div'); a.className='arrow'; a.textContent='→'; track.appendChild(a); }
+  }
+  const beads = track.querySelectorAll('.bead');
+  setInterval(()=>{
+    beads.forEach(b=>b.classList.remove('cur'));
+    beads[cur].classList.add('cur');
+    cur = (cur+1) % n;
+  }, 1100);
+})();
+
+// ---------- Simulador ----------
+const amigos = [
+  {n:'Ana', i:'A'},{n:'Luis', i:'L'},{n:'Marta', i:'M'},{n:'Sofía', i:'S'},{n:'Carlos', i:'C'}
+];
+let pos = -1;
+const profilesEl = document.getElementById('profiles');
+const logEl = document.getElementById('log');
+function renderProfiles(){
+  profilesEl.innerHTML = '';
+  amigos.forEach((p,idx)=>{
+    const d = document.createElement('div');
+    d.className = 'profile' + (idx===pos ? ' cur' : '');
+    d.innerHTML = `<div class="av">${p.i}</div><b>${p.n}</b><span>perfil</span>`;
+    profilesEl.appendChild(d);
+  });
+  document.getElementById('stPos').textContent = pos<0 ? '—' : pos;
+  document.getElementById('stMore').textContent = pos+1 < amigos.length ? 'true' : 'false';
+  document.getElementById('stCur').textContent = (pos>=0 && pos<amigos.length) ? amigos[pos].n : '—';
+  document.getElementById('btnNext').disabled = (pos+1 >= amigos.length);
+}
+function log(msg, ok){
+  const d = document.createElement('div');
+  if(ok) d.className='ok';
+  d.textContent = msg;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+document.getElementById('btnFirst').addEventListener('click', ()=>{
+  pos = 0; renderProfiles(); log('iterator.first() → posición 0', true);
+});
+document.getElementById('btnNext').addEventListener('click', ()=>{
+  if(pos+1 < amigos.length){ pos++; renderProfiles(); log('iterator.get_next() → '+amigos[pos].n, true); }
+});
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  pos = -1; renderProfiles(); logEl.innerHTML=''; log('iterator reiniciado');
+});
+renderProfiles();
+
+// ---------- Quiz ----------
+const preguntas = [
+  {q:'¿Qué responsabilidad extrae el patrón Iterator del objeto agregado?',
+   ops:['La de almacenar los elementos','La de recorrer los elementos','La de ordenar los elementos'], c:1,
+   fb:'El Iterator separa el "cómo se recorre" del "cómo se almacena", dejando esa responsabilidad en una clase aparte.'},
+  {q:'¿Cuál NO es un método típico de la interfaz Iterator?',
+   ops:['hasMore()','getNext()','save()'], c:2,
+   fb:'save() no pertenece a la interfaz de recorrido; los métodos clásicos son first/next/isDone/currentItem (o hasMore/getNext).'},
+  {q:'En el ejemplo de redes sociales, ¿qué clase NO debe modificarse al agregar una nueva red social?',
+   ops:['SocialSpammer','Facebook','FacebookIterator'], c:0,
+   fb:'SocialSpammer solo depende de la interfaz ProfileIterator, por eso puede enviar mensajes a cualquier red social nueva sin cambios.'},
+  {q:'¿Cuál es una desventaja real del patrón, según el propio libro de Gamma et al.?',
+   ops:['Simplifica la interfaz del agregado','Acopla al iterador concreto con el agregado','Elimina la necesidad de recorrer colecciones'], c:1,
+   fb:'El libro señala explícitamente que el iterador y la colección quedan acoplados, ya que el iterador necesita conocer la estructura interna.'}
+];
+let score = 0, answered = 0;
+const quizEl = document.getElementById('quiz');
+preguntas.forEach((pq, qi)=>{
+  const box = document.createElement('div'); box.className='q';
+  const p = document.createElement('p'); p.className='prompt'; p.textContent = (qi+1)+'. '+pq.q;
+  box.appendChild(p);
+  const fb = document.createElement('div'); fb.className='fb';
+  pq.ops.forEach((op, oi)=>{
+    const b = document.createElement('button'); b.className='opt'; b.textContent = op;
+    b.addEventListener('click', ()=>{
+      box.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+      if(oi===pq.c){ b.classList.add('correct'); score++; }
+      else { b.classList.add('wrong'); box.querySelectorAll('.opt')[pq.c].classList.add('correct'); }
+      fb.textContent = (oi===pq.c ? '✓ Correcto. ' : '✗ No es correcto. ') + pq.fb;
+      fb.classList.add('show');
+      answered++;
+      document.getElementById('score').textContent = 'Puntaje: '+score+' / '+preguntas.length+(answered===preguntas.length ? ' — quiz completo' : '');
+    });
+    box.appendChild(b);
+  });
+  box.appendChild(fb);
+  quizEl.appendChild(box);
+});
+
+// ---------- Code completion ----------
+const codeOps = [
+  'return self._cache[self._pos]',
+  'item = self._cache[self._pos]; self._pos += 1; return item',
+  'self._pos += 1; return self._cache[self._pos]'
+];
+const codeCorrect = 1;
+const codeFb = [
+  'Devuelve el elemento pero nunca avanza la posición: el recorrido nunca terminaría.',
+  'Primero guarda el perfil actual, luego avanza el puntero y lo retorna: así "actual" y "siguiente" quedan correctamente separados.',
+  'Avanza antes de leer, por lo que se salta el primer elemento de la colección.'
+];
+const codeqEl = document.getElementById('codeq');
+const cbox = document.createElement('div'); cbox.className='q';
+const cfb = document.createElement('div'); cfb.className='fb';
+codeOps.forEach((op,oi)=>{
+  const b = document.createElement('button'); b.className='opt'; b.style.fontFamily="ui-monospace,Consolas,monospace"; b.textContent = op;
+  b.addEventListener('click', ()=>{
+    cbox.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    if(oi===codeCorrect) b.classList.add('correct');
+    else { b.classList.add('wrong'); cbox.querySelectorAll('.opt')[codeCorrect].classList.add('correct'); }
+    cfb.textContent = (oi===codeCorrect ? '✓ Correcto. ' : '✗ No es correcto. ') + codeFb[oi];
+    cfb.classList.add('show');
+  });
+  cbox.appendChild(b);
+});
+cbox.appendChild(cfb);
+codeqEl.appendChild(cbox);
+</script>
+</body>
+</html>
